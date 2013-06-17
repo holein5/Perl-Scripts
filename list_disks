@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+chomp($dg = shift);
+if ( not $dg ) {
+        print "Please pass the disk group to the script";
+        print "Here is a list of the disk groups on this";
+        print "server.\n\n";
+        system("vxdg list");
+        print "\n\n";
+        print "Please enter a disk group: ";
+        chomp($dg = <>);
+}
+
+@disks = `vxdisk -o alldgs list|grep $dg`;
+print "EMC\t\t\tDisk Name\t\tSize\n";
+
+foreach ( @disks ) {
+        ($emc, $name) = $_ =~ m{(\S+)\s+\S+\s+(\S+)\s+.*};
+        @test = `vxdisk list $emc`;
+        foreach ( @test ) {
+                if ( not m{^public} ) {
+                        next;
+                }
+                ($size) = $_ =~ m{.*len=(\d+)\s+\S.*};
+                $size = $size / 2048;
+                push (@list, "$emc\t\t$name\t\t$size MB\n");
+                $total = $total + $size;
+        }
+}
+print "@list\n\n";
+printf "Total disk space for $dg is: %10.2f MB\n\n\n", $total;
