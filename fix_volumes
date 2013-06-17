@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+print "Please enter the size LUNs you will be using in MBs: ";
+$disk_size = <>;
+
+print "Here is a list of the disk groups on this";
+print "server.\n\n";
+system("vxdg list");
+print "\n\nPlease enter a disk group: ";
+$dg = <>;
+$count = 1;
+print "\n-------- Disk $count -------\n";
+@vxprint = `vxprint -htg $dg`;
+$disk_fill = 0;
+foreach ( @vxprint ) {
+        if ( m{^pl} ) {
+                ($volume, $size) = $_ =~ m{\S+\s+\S+\s+(\S+)\s+\S+\s+\S+\s+(\d+)\s+.*};
+                $size = sprintf "%.2f", $size / 2048;
+                $disk_fill = $disk_fill + $size;
+                if ( $disk_fill < $disk_size ) {
+                        print "$volume\t\t\t$size\t\t\t$disk_fill\n";
+                }
+                else {
+                        $count++;
+                        print "\n-------- Disk $count --------\n";
+                        $disk_fill = $size;
+                        print "$volume\t\t\t$size\t\t\t$disk_fill\n";
+                }
+        }
+}
