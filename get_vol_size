@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+
+print "Here is a list of the disk groups on this";
+print "server.\n\n";
+system("vxdg list");
+print "\n\n";
+print "Please enter a disk group: ";
+$dg = <>;
+
+@vxprint = `vxprint -htg $dg`;
+foreach ( @vxprint ) {
+        if ( m{^pl} ) {
+                ($volume, $size) = $_ =~ m{\S+\s+\S+\s+(\S+)\s+\S+\s+\S+\s+(\d+)\s+.*};
+                $size = sprintf "%.2f", $size / 2048;
+                print "$volume\t\t\t$size MB";
+                print "\n-----------------------------\n";
+        }
+}
